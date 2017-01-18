@@ -312,7 +312,7 @@ void free_block1_buffer(lwm2m_block1_data_t * block1Data);
 // defined in utils.c
 lwm2m_data_type_t utils_depthToDatatype(uri_depth_t depth);
 lwm2m_binding_t utils_stringToBinding(uint8_t *buffer, size_t length);
-lwm2m_media_type_t utils_convertMediaType(coap_content_type_t type);
+lwm2m_media_type_t utils_convertMediaType(uint32_t type);
 int utils_isAltPathValid(const char * altPath);
 int utils_stringCopy(char * buffer, size_t length, const char * str);
 int utils_intCopy(char * buffer, size_t length, int32_t value);

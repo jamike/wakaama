@@ -220,7 +220,7 @@ typedef struct {
 
   uint8_t options[COAP_OPTION_PROXY_URI / OPTION_MAP_SIZE + 1]; /* Bitmap to check if option is set */
 
-  coap_content_type_t content_type; /* Parse options once and store; allows setting options in random order  */
+  uint32_t content_type; /* Parse options once and store; allows setting options in random order  */
   uint32_t max_age;
   size_t proxy_uri_len;
   const uint8_t *proxy_uri;

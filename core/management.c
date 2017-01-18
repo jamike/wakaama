@@ -380,7 +380,6 @@ static void prv_resultCallback(lwm2m_transaction_t * transacP,
 
             lwm2m_free(locationString);
         }
-
         dataP->callback(((lwm2m_client_t*)transacP->peerP)->internalID,
                         &dataP->uri,
                         packet->code,

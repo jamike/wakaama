@@ -377,7 +377,7 @@ lwm2m_binding_t utils_stringToBinding(uint8_t * buffer,
     return BINDING_UNKNOWN;
 }
 
-lwm2m_media_type_t utils_convertMediaType(coap_content_type_t type)
+lwm2m_media_type_t utils_convertMediaType(uint32_t type)
 {
     // Here we just check the content type is a valid value for LWM2M
     switch((uint16_t)type)
