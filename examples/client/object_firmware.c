@@ -48,7 +48,7 @@
 #define RES_M_PACKAGE_URI               1
 #define RES_M_UPDATE                    2
 #define RES_M_STATE                     3
-#define RES_O_UPDATE_SUPPORTED_OBJECTS  4
+#define RES_O_UPDATE_SUPPORTED_OPJECTS  4
 #define RES_M_UPDATE_RESULT             5
 #define RES_O_PKG_NAME                  6
 #define RES_O_PKG_VERSION               7
@@ -56,7 +56,7 @@
 
 static uint8_t prv_firmware_read(uint16_t instanceId,
                                  int * numDataP,
-                                 lwm2m_data_t ** dataArrayP,
+                                 lwm2m_tlv_t ** dataArrayP,
                                  lwm2m_object_t * objectP)
 {
     int i;
@@ -72,7 +72,7 @@ static uint8_t prv_firmware_read(uint16_t instanceId,
     // is the server asking for the full object ?
     if (*numDataP == 0)
     {
-        *dataArrayP = lwm2m_data_new(3);
+        *dataArrayP = lwm2m_tlv_new(3);
         if (*dataArrayP == NULL) return COAP_500_INTERNAL_SERVER_ERROR;
         *numDataP = 3;
         (*dataArrayP)[0].id = 3;
@@ -93,18 +93,30 @@ static uint8_t prv_firmware_read(uint16_t instanceId,
 
         case RES_M_STATE:
             // firmware update state (int)
-            lwm2m_data_encode_int(data->state, *dataArrayP + i);
-            result = COAP_205_CONTENT;
+            lwm2m_tlv_encode_int(data->state, *dataArrayP + i);
+            (*dataArrayP)[i].type = LWM2M_TYPE_RESOURCE;
+
+            if (0 != (*dataArrayP)[i].length) result = COAP_205_CONTENT;
+            else result = COAP_500_INTERNAL_SERVER_ERROR;
+
             break;
 
-        case RES_O_UPDATE_SUPPORTED_OBJECTS:
-            lwm2m_data_encode_bool(data->supported, *dataArrayP + i);
-            result = COAP_205_CONTENT;
+        case RES_O_UPDATE_SUPPORTED_OPJECTS:
+            lwm2m_tlv_encode_int(data->supported, *dataArrayP + i);
+            (*dataArrayP)[i].type = LWM2M_TYPE_RESOURCE;
+
+            if (0 != (*dataArrayP)[i].length) result = COAP_205_CONTENT;
+            else result = COAP_500_INTERNAL_SERVER_ERROR;
+
             break;
 
         case RES_M_UPDATE_RESULT:
-            lwm2m_data_encode_int(data->result, *dataArrayP + i);
-            result = COAP_205_CONTENT;
+            lwm2m_tlv_encode_int(data->result, *dataArrayP + i);
+            (*dataArrayP)[i].type = LWM2M_TYPE_RESOURCE;
+
+            if (0 != (*dataArrayP)[i].length) result = COAP_205_CONTENT;
+            else result = COAP_500_INTERNAL_SERVER_ERROR;
+
             break;
 
         default:
@@ -119,10 +131,11 @@ static uint8_t prv_firmware_read(uint16_t instanceId,
 
 static uint8_t prv_firmware_write(uint16_t instanceId,
                                   int numData,
-                                  lwm2m_data_t * dataArray,
+                                  lwm2m_tlv_t * dataArray,
                                   lwm2m_object_t * objectP)
 {
     int i;
+    bool bvalue;
     uint8_t result;
     firmware_data_t * data = (firmware_data_t*)(objectP->userData);
 
@@ -151,9 +164,10 @@ static uint8_t prv_firmware_write(uint16_t instanceId,
             result = COAP_204_CHANGED;
             break;
 
-        case RES_O_UPDATE_SUPPORTED_OBJECTS:
-            if (lwm2m_data_decode_bool(&dataArray[i], &data->supported) == 1)
+        case RES_O_UPDATE_SUPPORTED_OPJECTS:
+            if (lwm2m_tlv_decode_bool(&dataArray[i], &bvalue) == 1)
             {
+                data->supported = bvalue ? 1 : 0;
                 result = COAP_204_CHANGED;
             }
             else
@@ -194,7 +208,6 @@ static uint8_t prv_firmware_execute(uint16_t instanceId,
     case RES_M_UPDATE:
         if (data->state == 1)
         {
-            fprintf(stdout, "\n\t FIRMWARE UPDATE\r\n\n");
             data->state = 2;
             // trigger your firmware download and update logic
             data->updatefw_function(objectP);
@@ -231,8 +244,8 @@ void display_firmware_object(lwm2m_object_t * object)
     fprintf(stdout, "  /%u: Firmware object:\r\n", object->objID);
     if (NULL != data)
     {
-        fprintf(stdout, "    state: %u, supported: %s, result: %u\r\n",
-                data->state, data->supported?"true":"false", data->result);
+        fprintf(stdout, "    state: %u, supported: %u, result: %u\r\n",
+                data->state, data->supported, data->result);
     }
 #endif
 }
@@ -288,7 +301,7 @@ lwm2m_object_t * get_object_firmware(void)
         if (NULL != firmwareObj->userData)
         {
             ((firmware_data_t*)firmwareObj->userData)->state = 1;
-            ((firmware_data_t*)firmwareObj->userData)->supported = false;
+            ((firmware_data_t*)firmwareObj->userData)->supported = 0;
             ((firmware_data_t*)firmwareObj->userData)->result = 0;
         }
         else
