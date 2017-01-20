@@ -146,7 +146,7 @@ static uint8_t prv_firmware_write(uint16_t instanceId,
         case RES_M_PACKAGE_URI:
             // URL for download the firmware
             memset(data->package_url, 0, sizeof(data->package_url));
-            strncpy(data->package_url, dataArray[i].value, dataArray[i].length);
+            strncpy(data->package_url, dataArray[i].value.asBuffer.buffer, dataArray[i].value.asBuffer.length);
 
             result = COAP_204_CHANGED;
             break;
@@ -279,7 +279,7 @@ lwm2m_object_t * get_object_firmware(void)
         firmwareObj->readFunc    = prv_firmware_read;
         firmwareObj->writeFunc   = prv_firmware_write;
         firmwareObj->executeFunc = prv_firmware_execute;
-        firmwareObj->closeFunc   = prv_firmware_close;
+        firmwareObj->deleteFunc   = prv_firmware_close;
         firmwareObj->userData    = lwm2m_malloc(sizeof(firmware_data_t));
 
         /*
